@@ -139,7 +139,7 @@ footer {
 .hero-nav {
   display: flex;
   gap: 32px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
   letter-spacing: 0.02em;
   text-transform: none;
@@ -1026,7 +1026,7 @@ footer {
 
   .hero-nav {
     gap: 18px;
-    font-size: 13px;
+    font-size: 14px;
     letter-spacing: 0.04em;
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -1174,7 +1174,7 @@ footer {
 
   .hero-nav {
     gap: 12px;
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.04em;
   }
 
