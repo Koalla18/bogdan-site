@@ -26,7 +26,7 @@ export function HeroPosterSection({
             height={1100}
             priority
             className="artist"
-            sizes="(max-width: 900px) 78vw, (max-width: 1400px) 38vw, 590px"
+            sizes="(max-width: 560px) 94vw, (max-width: 900px) 88vw, (max-width: 1400px) 38vw, 590px"
           />
         </div>
       </div>
