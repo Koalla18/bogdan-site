@@ -1,38 +1,131 @@
-# bogdan-site
+# BRANYA Artist Website
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+One-page artist website with secure admin dashboard, PostgreSQL persistence, and deployment behind an existing VPS Caddy.
 
-## Getting Started
+## Stack
 
-First, run the development server:
+- Next.js 16 (App Router), TypeScript
+- Prisma + PostgreSQL
+- Admin auth with HttpOnly session cookie (server-side)
+- Zod validation/sanitization for admin payloads
+- Rate limits + security headers in `src/proxy.ts`
+- Docker Compose (`app` + `postgres`)
+
+## Main URLs
+
+- Site: `/`
+- Admin login: `/admin/login`
+- Admin dashboard: `/admin/dashboard`
+- Health: `/api/health`
+
+## Admin Demo Credentials
+
+- Login: `admin`
+- Password: `Branya2026!Admin`
+
+Credentials are read from `.env` (`ADMIN_USERNAME`, `ADMIN_PASSWORD`).
+
+## Local Run (Docker)
+
+1. Copy env:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Start containers:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker compose up --build -d
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Open:
 
-## Learn More
+- `http://localhost:3000`
+- `http://localhost:3000/admin/login`
 
-To learn more about Next.js, take a look at the following resources:
+4. Health check:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+curl http://localhost:3000/api/health
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Expected:
 
-## Deploy on Vercel
+```json
+{ "ok": true, "db": true }
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy On VPS (with existing Caddy)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Clone project and prepare env:
+
+```bash
+cp .env.example .env
+```
+
+2. Update **required** values in `.env`:
+
+- `SITE_PUBLIC_URL=https://your-domain.com`
+- `ADMIN_PASSWORD` (change default)
+- `SESSION_SECRET` (long random secret)
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL` (must match DB credentials)
+
+3. Start app + db:
+
+```bash
+docker compose up -d --build
+```
+
+4. Add site block to your **existing** Caddy config:
+
+```caddyfile
+your-domain.com {
+  encode gzip zstd
+
+  reverse_proxy 127.0.0.1:3000 {
+    header_up Host {host}
+    header_up X-Forwarded-Host {host}
+    header_up X-Forwarded-Proto {scheme}
+    header_up X-Forwarded-For {remote_host}
+  }
+}
+```
+
+5. Reload Caddy:
+
+```bash
+sudo caddy reload --config /etc/caddy/Caddyfile
+```
+
+6. Verify:
+
+- `https://your-domain.com`
+- `https://your-domain.com/admin/login`
+- `https://your-domain.com/api/health`
+
+## Notes About Login/DB
+
+- App container always connects to DB service `postgres:5432` (compose overrides local env host values).
+- Startup waits for DB and applies schema before Next.js start (`scripts/start.sh`).
+- If DB is temporarily unavailable, admin shows a styled Russian error panel with retry button instead of raw text.
+
+## Security
+
+- `/admin/dashboard` protected server-side.
+- All `/api/admin/*` endpoints require session (except `/api/admin/login`).
+- Login/API rate limits enabled.
+- JSON payload size guarded.
+- Admin text/url/color fields validated server-side.
+
+## Useful Commands
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run db:generate
+npm run db:push
+npm run db:seed
+```

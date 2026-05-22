@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SiteSettings {
+  id        Int      @id
+  labels    Json
+  colors    Json
+  footer    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Concert {
+  id         String   @id @default(cuid())
+  date       String
+  city       String
+  subline    String?
+  venueLine1 String
+  venueLine2 String?
+  time       String
+  ticketText String   @default("КУПИТЬ БИЛЕТ")
+  ticketUrl  String   @default("#")
+  enabled    Boolean  @default(true)
+  sortOrder  Int      @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sortOrder])
+}
