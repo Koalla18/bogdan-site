@@ -16,8 +16,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "127.0.0.1:3000:3000"
+    networks:
+      - shared
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health | grep -q '\"ok\":true'"]
       interval: 10s
@@ -46,3 +46,8 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  shared:
+    external: true
+    name: shared
