@@ -1,0 +1,10 @@
+# Reduce build context size and avoid leaking secrets
+.git
+.gitignore
+node_modules
+.next
+.env
+.env.*
+*.log
+tsconfig.tsbuildinfo
+prisma/dev.db
